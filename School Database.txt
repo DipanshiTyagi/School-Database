@@ -1,0 +1,146 @@
+import mysql.connector
+from tabulate import tabulate
+
+mydb = mysql.connector.connect(host='localhost', user='root',
+                               password='oracle', charset='utf8')
+mycursor = mydb.cursor()
+mycursor.execute("create database if not exists SchoolDatabases")
+
+
+print("Database created :")
+mycursor.execute("use SchoolDatabases ")
+mycursor.execute("Create table if not exists student"
+                 "( AdmNo int(5) primary key,Name varchar(20) "
+                 "not null, Class int(2), Sec varchar(1), Age int(2))")
+
+
+print("Table created successfully......")
+
+
+
+while True:
+    print("\n")
+    print("*" * 100)
+    print("\t\t\t\tMain Menu")
+    print("*" * 100)
+    print("\t\t1.Adding Student Records")
+    print("\t\t2. Display Record of All Student")
+    print("\t\t3. Display Record of Particular Student")
+    print("\t\t4. Delete Record of Particular Student")
+    print("\t\t5. Modify Record")
+    print("\t\t6. Exit")
+
+
+    ch = int(input("Please Enter choice:.........."))
+
+    if ch == 1:
+        try:
+            print("Enter Student Information........")
+
+            AdmNo = int(input("Enter Student Addmission No."))
+
+            Name = input("Enter Student Name.")
+
+            Class = int(input("Enter Student Class."))
+
+            Sec = input("Enter Sec of the student:")
+
+            Age = int(input("Enter Age of the student"))
+
+            rec = (AdmNo, Name, Class, Sec, Age)
+
+            query = "insert into student values(%s,%s,%s,%s,%s)"
+            mycursor.execute(query, rec)
+            mydb.commit()
+            print("Record added successfully:")
+
+        except:
+            print("Something went wrong:")
+
+
+    elif ch == 2:
+
+        try:
+            mycursor.execute("select * from student")
+
+            print(tabulate(mycursor, headers=[
+                'AdmNo', 'Name', 'Class','Sec', 'Age'], tablefmt='psql'))
+            data = mycursor.fetchall()
+            c = mycursor.rowcount
+
+            if c > 0:
+                for rec in data:
+                    print(rec)
+
+            else:
+                print("No record to Display")
+
+        except:
+            print("Something Went Wrong")
+
+
+    elif ch == 3:
+        en = input("Enter Student admission no whose "
+                   "record you want to display.")
+        mycursor.execute("select * from student where AdmNo=" + en)
+        rec = mycursor.fetchone()
+        c = mycursor.rowcount
+
+
+        if c == -1:
+            print("Record Not found")
+
+        else:
+            print(rec)
+
+
+    elif ch == 4:
+        try:
+            en = input("Enter admission no of student whose "
+                       "record you want to delete.")
+            mycursor.execute("delete from student where AdmNo=" + en)
+            rec = mycursor.fetchone()
+            mydb.commit()
+            c = mycursor.rowcount
+            if c > 0:
+                print("Deletion done:")
+            else:
+                print("Student Admission number not found.....")
+        except:
+            print("Something wrong, Please correct it.")
+
+
+    elif ch == 5:
+        en = input("Enter student admission no whose record "
+                   "you want to modify.")
+        mycursor.execute("select * from student where AdmNo=" + en)
+        rec = mycursor.fetchone()
+        c = mycursor.rowcount
+        print("Total rows are:", c)
+
+        if c > 0:
+            print("YES! Your record found........")
+            print(rec)
+            print(" Please modify your Record Now ")
+            AdmNo = input("Enter student's admission No:")
+            Name = input("Enter Name:")
+            Class = int(input("Enter Class:"))
+            Sec = (input("Enter Section of the Student:"))
+            Age = int(input("Enter the age of student:"))
+            mycursor.execute("""UPDATE student SET Name=%s, 
+            Class=%s, Sec=%s, Age=%s WHERE AdmNo=%s """,
+                             (Name, Class, Sec, Age, en))
+            mydb.commit()
+            print("Record Modified.......")
+
+        else:
+            print("Student Addmission number does not exist:")
+
+
+    elif ch == 6:
+
+        break
+
+    else:
+        print("Wrong Choice:")
+mydb.close()
